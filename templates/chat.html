@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    <title>ChatFlask</title>
+
+    <!-- CSS only -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+
+
+    <style>
+        .chat {
+            display: flex;
+            flex-direction: column;
+            max-height: 300px;
+            overflow: auto;
+            
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        form {
+            margin-top: 10px;
+        }
+
+    </style>
+
+</head>
+<body>
+    <div class="jumbotron">
+        <div class="container">
+            <div >
+                
+                <ul class="list-group mb-4 chat"></ul>
+
+                <form>
+                    <div class="form-row">
+                        <div class="col-3">
+                            <input id="txt-nome" type="text" class="form-control" placeholder="Nome">
+                        </div>
+                        <div class="col-8">
+                            <input id="txt-mensagem" type="text" class="form-control" placeholder="Mensagem">
+                        </div>
+                        <div class="col-1">
+                            <button type="submit" class="btn btn-success">Enviar</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.1/socket.io.js"></script>
+
+    <!-- JS, Popper.js, and jQuery -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js" integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js" integrity="sha384-B4gt1jrGC7Jh4AgTPSdUtOBvfO8shuf57BaghqFfPlYxofvL8/KUEfYiJOMMV+rV" crossorigin="anonymous"></script>
+    <script> 
+        window.onload = function(){
+            const socket = io('http://localhost:5000');
+            
+            function addMensagem(msg) {
+                const li = document.createElement("li")
+                li.setAttribute("class", "list-group-item d-flex justify-content-between lh-condensed")
+                li.innerHTML = `<div>
+                                    <h6 class="my-0">${msg.nome}</h6>
+                                    <small class="text-muted">${msg.mensagem}</small>
+                                </div> `
+                
+                const chat = document.querySelector(".chat");
+                chat.append(li)
+                chat.scrollTop = chat.scrollHeight;
+            };
+
+            socket.on('connect', () => {
+                socket.send('Conectado.')
+            });
+
+            socket.on('getMessage', (msg) => {
+                addMensagem(msg)
+            });            
+
+            document.querySelector("form").addEventListener("submit", function(){
+                event.preventDefault();
+                socket.emit('sendMessage', { nome: event.target[0].value, mensagem: event.target[1].value })
+                
+                document.getElementById("txt-mensagem").value='';
+            });    
+
+        }
+    </script>
+</body>
+</html>
